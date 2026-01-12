@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database (optional, defaults to SQLite)
+  postgres:
+    image: postgres:15-alpine
+    container_name: lokum-vpn-postgres
+    environment:
+      POSTGRES_DB: lokum_vpn
+      POSTGRES_USER: lokum_vpn
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - lokum-network
+    restart: unless-stopped
+    profiles:
+      - production
+
+  # Redis Cache (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: lokum-vpn-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - lokum-network
+    restart: unless-stopped
+    profiles:
+      - production
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lokum-vpn-backend
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-change-secret-key-in-production}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./lokum_vpn.db}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=6379
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - VPN_MANAGEMENT_PATH=/app/data
+      - VPN_WG_CONFIG_PATH=/etc/wireguard
+    volumes:
+      - ./backend:/app
+      - backend_data:/app/data
+      - wireguard_config:/etc/wireguard
+    ports:
+      - "8000:8000"
+    networks:
+      - lokum-network
+    depends_on:
+      - redis
+    restart: unless-stopped
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+networks:
+  lokum-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  backend_data:
+  wireguard_config:
+
+
+
+
+
