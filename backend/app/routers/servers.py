@@ -10,7 +10,7 @@ from app.database import get_db
 from app.models.user import User
 from app.models.vpn_server import VPNServer
 from app.schemas.server import VPNServerCreate, VPNServerResponse, VPNServerListResponse, ServerStatus
-from app.routers.auth import get_current_user
+from app.routers.auth import get_current_user_or_guest
 from app.utils.helpers import check_server_health, ping_server
 
 router = APIRouter()
@@ -19,7 +19,7 @@ router = APIRouter()
 async def list_servers(
     country: Optional[str] = Query(None, description="Filter by country code"),
     active_only: bool = Query(True, description="Show only active servers"),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_or_guest),
     db: Session = Depends(get_db)
 ):
     """List all available VPN servers"""
@@ -40,7 +40,7 @@ async def list_servers(
 
 @router.get("/countries")
 async def list_countries(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_or_guest),
     db: Session = Depends(get_db)
 ):
     """List all available countries with server counts"""
@@ -61,7 +61,7 @@ async def list_countries(
 @router.get("/{server_id}", response_model=VPNServerResponse)
 async def get_server(
     server_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_or_guest),
     db: Session = Depends(get_db)
 ):
     """Get details of a specific VPN server"""
@@ -78,7 +78,7 @@ async def get_server(
 @router.get("/{server_id}/status", response_model=ServerStatus)
 async def get_server_status(
     server_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_or_guest),
     db: Session = Depends(get_db)
 ):
     """Get real-time status of a VPN server"""

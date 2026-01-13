@@ -2,10 +2,11 @@
 Authentication router
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from datetime import timedelta
+from typing import Optional
 
 from app.database import get_db
 from app.models.user import User
@@ -16,10 +17,19 @@ from app.utils.security import (
 from app.core.config import settings
 
 router = APIRouter()
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
+security_required = HTTPBearer()
+
+def get_optional_token(
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(security)
+) -> Optional[str]:
+    """Extract optional token from credentials"""
+    if credentials:
+        return credentials.credentials
+    return None
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security_required),
     db: Session = Depends(get_db)
 ) -> User:
     """Get the current authenticated user"""
@@ -56,6 +66,45 @@ async def get_current_user(
         )
     
     return user
+
+async def get_current_user_or_guest(
+    token: Optional[str] = Depends(get_optional_token),
+    db: Session = Depends(get_db)
+) -> User:
+    """Get current user or create/return a guest user if no auth provided"""
+    # Try to get authenticated user if token provided
+    if token:
+        try:
+            payload = decode_access_token(token)
+            
+            if payload:
+                username: str = payload.get("sub")
+                if username:
+                    user = db.query(User).filter(User.username == username).first()
+                    if user and user.is_active:
+                        return user
+        except Exception:
+            pass
+    
+    # No auth or invalid auth - use guest user
+    guest_username = "guest"
+    guest_user = db.query(User).filter(User.username == guest_username).first()
+    
+    if not guest_user:
+        # Create guest user if doesn't exist
+        hashed_password = get_password_hash("guest_password_not_used")
+        guest_user = User(
+            username=guest_username,
+            email="guest@lokumvpn.local",
+            hashed_password=hashed_password,
+            is_active=True,
+            is_admin=False
+        )
+        db.add(guest_user)
+        db.commit()
+        db.refresh(guest_user)
+    
+    return guest_user
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreate, db: Session = Depends(get_db)):

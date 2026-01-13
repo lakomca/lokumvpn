@@ -30,7 +30,7 @@ dependencies:
   shimmer: ^3.0.0
   
   # VPN & Network
-  flutter_vpn: ^1.0.3
+  flutter_vpn: ^0.13.0
   permission_handler: ^11.1.0
   
   # Utils
@@ -62,16 +62,18 @@ flutter:
     - assets/icons/
     - assets/animations/
   
-  fonts:
-    - family: Inter
-      fonts:
-        - asset: assets/fonts/Inter-Regular.ttf
-        - asset: assets/fonts/Inter-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Inter-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/Inter-Bold.ttf
-          weight: 700
+  # Fonts commented out - Inter font files not included
+  # If you have Inter fonts, uncomment and add font files:
+  # fonts:
+  #   - family: Inter
+  #     fonts:
+  #       - asset: assets/fonts/Inter-Regular.ttf
+  #       - asset: assets/fonts/Inter-Medium.ttf
+  #         weight: 500
+  #       - asset: assets/fonts/Inter-SemiBold.ttf
+  #         weight: 600
+  #       - asset: assets/fonts/Inter-Bold.ttf
+  #         weight: 700
 
 
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/vpn_provider.dart';
-import '../providers/auth_provider.dart';
 import 'server_list_screen.dart';
 import 'stats_screen.dart';
 import 'settings_screen.dart';
@@ -58,8 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.server_outlined),
-            selectedIcon: Icon(Icons.server),
+            icon: Icon(Icons.dns_outlined),
+            selectedIcon: Icon(Icons.dns),
             label: 'Servers',
           ),
           NavigationDestination(

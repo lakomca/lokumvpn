@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from typing import Dict
 
 from app.models.user import User
-from app.routers.auth import get_current_user
+from app.routers.auth import get_current_user_or_guest
 from app.services.adblock import adblock_service
 from app.services.malware import malware_service
 
@@ -29,7 +29,7 @@ class ProtectionStats(BaseModel):
 
 @router.get("/stats", response_model=ProtectionStats)
 async def get_protection_stats(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_or_guest)
 ):
     """Get ad blocking and malware protection statistics"""
     adblock_count = await adblock_service.get_blocklist_count()
@@ -48,7 +48,7 @@ async def get_protection_stats(
 @router.post("/check", response_model=BlockCheckResponse)
 async def check_domain(
     request: BlockCheckRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_or_guest)
 ):
     """Check if a domain should be blocked"""
     domain = request.domain.lower().strip()
@@ -77,7 +77,7 @@ async def check_domain(
 
 @router.post("/update/adblock")
 async def update_adblock_list(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_or_guest)
 ):
     """Update ad blocking blocklist (admin only)"""
     if not current_user.is_admin:
@@ -97,7 +97,7 @@ async def update_adblock_list(
 
 @router.post("/update/malware")
 async def update_malware_list(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_or_guest)
 ):
     """Update malware protection blocklist (admin only)"""
     if not current_user.is_admin:
@@ -117,7 +117,7 @@ async def update_malware_list(
 
 @router.get("/status")
 async def get_protection_status(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user_or_guest)
 ):
     """Get protection feature status"""
     adblock_needs_update = await adblock_service.needs_update()

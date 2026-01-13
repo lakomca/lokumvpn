@@ -10,13 +10,13 @@ from datetime import datetime, timedelta
 from app.database import get_db
 from app.models.user import User
 from app.models.vpn_server import Connection
-from app.routers.auth import get_current_user
+from app.routers.auth import get_current_user_or_guest
 
 router = APIRouter()
 
 @router.get("/summary")
 async def get_stats_summary(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_or_guest),
     db: Session = Depends(get_db)
 ):
     """Get user statistics summary"""
@@ -61,7 +61,7 @@ async def get_stats_summary(
 @router.get("/usage")
 async def get_usage_stats(
     days: int = 7,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_or_guest),
     db: Session = Depends(get_db)
 ):
     """Get usage statistics for the last N days"""

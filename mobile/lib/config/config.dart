@@ -4,7 +4,7 @@ class AppConfig {
   // For local Mac testing with remote backend server
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://172.31.2.242:8000',  // Remote server backend
+    defaultValue: 'http://3.29.239.219:8000',  // Remote server backend
   );
   
   static const String apiVersion = '/api/v1';

@@ -277,11 +277,31 @@ class ApiService {
   Exception _handleError(dynamic error) {
     if (error is DioException) {
       if (error.response != null) {
-        final message = error.response?.data['detail'] ?? 'An error occurred';
+        // Try to get detailed error message
+        final responseData = error.response?.data;
+        String message = 'An error occurred';
+        
+        if (responseData is Map) {
+          // Try multiple possible error message fields
+          message = responseData['detail'] ?? 
+                   responseData['message'] ?? 
+                   responseData['error'] ??
+                   responseData.toString();
+        } else if (responseData is String) {
+          message = responseData;
+        }
+        
+        // If it's an internal server error, provide helpful message
+        if (error.response?.statusCode == 500) {
+          message = 'Server error: $message. Please check backend logs or contact support.';
+        }
+        
         return Exception(message);
       } else if (error.type == DioExceptionType.connectionTimeout ||
           error.type == DioExceptionType.receiveTimeout) {
         return Exception('Connection timeout. Please check your internet connection.');
+      } else if (error.type == DioExceptionType.connectionError) {
+        return Exception('Cannot connect to server. Please check if the server is running.');
       } else {
         return Exception('Network error: ${error.message}');
       }

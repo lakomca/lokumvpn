@@ -9,7 +9,7 @@ from app.database import get_db
 from app.models.user import User
 from app.models.vpn_server import VPNServer, VPNConfig, Connection
 from app.schemas.config import VPNConfigCreate, VPNConfigResponse, ConnectionRequest, ConnectionStatus
-from app.routers.auth import get_current_user
+from app.routers.auth import get_current_user_or_guest
 from app.utils.wireguard import generate_keypair, generate_client_ip, create_wireguard_config
 from app.core.config import settings
 
@@ -18,7 +18,7 @@ router = APIRouter()
 @router.post("/", response_model=VPNConfigResponse, status_code=status.HTTP_201_CREATED)
 async def create_config(
     config_data: VPNConfigCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_or_guest),
     db: Session = Depends(get_db)
 ):
     """Create a new VPN configuration for a server"""
@@ -109,7 +109,7 @@ async def create_config(
 
 @router.get("/", response_model=list[VPNConfigResponse])
 async def list_configs(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_or_guest),
     db: Session = Depends(get_db)
 ):
     """List all VPN configurations for current user"""
@@ -136,7 +136,7 @@ async def list_configs(
 @router.get("/{config_id}", response_model=VPNConfigResponse)
 async def get_config(
     config_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_or_guest),
     db: Session = Depends(get_db)
 ):
     """Get a specific VPN configuration"""
@@ -168,7 +168,7 @@ async def get_config(
 @router.delete("/{config_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_config(
     config_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_or_guest),
     db: Session = Depends(get_db)
 ):
     """Delete a VPN configuration"""
@@ -191,7 +191,7 @@ async def delete_config(
 @router.post("/connect", response_model=ConnectionStatus)
 async def connect_vpn(
     connection_request: ConnectionRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_or_guest),
     db: Session = Depends(get_db)
 ):
     """Establish a VPN connection"""
@@ -248,7 +248,7 @@ async def connect_vpn(
 
 @router.post("/disconnect", response_model=ConnectionStatus)
 async def disconnect_vpn(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_or_guest),
     db: Session = Depends(get_db)
 ):
     """Disconnect current VPN connection"""
@@ -276,7 +276,7 @@ async def disconnect_vpn(
 
 @router.get("/status", response_model=ConnectionStatus)
 async def get_connection_status(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_or_guest),
     db: Session = Depends(get_db)
 ):
     """Get current VPN connection status with real-time duration calculation"""
