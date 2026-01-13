@@ -8,7 +8,7 @@ workflows:
       xcode: 16.0
       cocoapods: default
       groups:
-        - app_store_credentials
+        - app_store_credentials  # Add your Apple Developer credentials here
     scripts:
       - name: Get Flutter dependencies
         script: |
@@ -18,10 +18,14 @@ workflows:
         script: |
           cd mobile/ios
           pod install
+      - name: Set up code signing settings on Xcode project
+        script: |
+          xcode-project use-profiles
       - name: Build iOS
         script: |
           cd mobile
-          flutter build ipa --release
+          flutter build ipa --release \
+            --export-options-plist=ios/ExportOptions.plist
     artifacts:
       - build/ios/ipa/*.ipa
     publishing:
